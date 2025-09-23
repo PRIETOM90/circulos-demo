@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Círculos – MVP Mock con Registro</title>
+  <style>
+    :root { --bg:#0b1020; --card:#121935; --muted:#8092b3; --text:#e6edf6; --brand:#ff7a18; --brand-2:#1fbf9c; --ok:#2ecc71; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;background:radial-gradient(1000px 600px at 10% -10%, rgba(255,122,24,.08), transparent 60%),radial-gradient(1000px 600px at 90% -20%, rgba(31,191,156,.08), transparent 60%),var(--bg);color:var(--text)}
+    a{color:var(--brand-2);text-decoration:none}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.3px}
+    .logo-badge{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--brand),#ffb21f);display:grid;place-items:center;color:#111;font-weight:900}
+    .actions{display:flex;gap:8px;align-items:center}
+    .btn{background:linear-gradient(135deg,var(--brand),#ffb21f);color:#111;border:none;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;transition:transform .05s ease}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.alt{background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.1)}
+    .btn.ghost{background:transparent;border:1px dashed rgba(255,255,255,.2);color:#c7d3ea}
+    .tag{font-size:12px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#c7d3ea}
+
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;padding:24px 0 8px}
+    @media (max-width:880px){.hero{grid-template-columns:1fr}}
+    .hero-card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .hero h1{margin:0 0 8px;font-size:clamp(28px,4vw,44px);line-height:1.06}
+    .hero p{margin:0;color:var(--muted)}
+    .statbar{display:flex;gap:16px;margin-top:18px}
+    .chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:999px;font-size:14px;color:#c7d3ea}
+
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+    @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:640px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+    .thumb{aspect-ratio:16/9;background:linear-gradient(135deg,rgba(255,122,24,.15),rgba(31,191,156,.15));display:grid;place-items:center;font-weight:700;letter-spacing:.4px;color:#0b1020}
+    .content{padding:16px;display:flex;flex-direction:column;gap:10px}
+    .title{font-weight:700;font-size:18px}
+    .subtitle{color:var(--muted);font-size:14px;min-height:34px}
+    .progress-wrap{display:flex;align-items:center;gap:10px}
+    .progress{position:relative;flex:1;height:10px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+    .progress>span{position:absolute;inset:0;width:0;background:linear-gradient(90deg,var(--brand),#ffb21f);box-shadow:inset 0 0 10px rgba(255,255,255,.15)}
+    .progress-info{font-size:12px;color:#c7d3ea}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .price{font-weight:800}
+
+    footer{margin:40px 0 20px;text-align:center;color:var(--muted);font-size:13px}
+
+    /* Pitch sticky */
+    .pitch{position:sticky;top:10px;background:rgba(18,25,53,.8);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .pitch input[type="number"]{width:72px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:#0e1430;color:#e6edf6}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5)}
+    .modal.show{display:grid}
+    .sheet{width:min(720px,92vw);background:#0e1430;border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.4);padding:18px}
+    .sheet h3{margin:0 0 8px}
+    .form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form .full{grid-column:1/-1}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:12px;color:#c7d3ea}
+    .field input,.field select,.field textarea{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:#0b1026;color:#e6edf6}
+    .muted{color:#99a7c6;font-size:12px}
+
+    /* Toast */
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0e1430;color:#e6edf6;border:1px solid rgba(255,255,255,.12);padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .25s}
+    .toast.show{opacity:1}
+    
+    /* Account badge */
+    .badge{padding:6px 10px;border-radius:999px;background:rgba(31,191,156,.12);border:1px solid rgba(31,191,156,.35);color:#baf2e4;font-size:12px}
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo"><span class="logo-badge">C</span><span>Círculos</span></div>
+    <div class="actions">
+      <span id="acctBadge" class="badge" style="display:none"></span>
+      <button class="btn alt" id="btnOrders" style="display:none">Mis pedidos</button>
+      <div class="pitch" aria-label="Controles de Pitch (solo demo)">
+        <span class="tag">Pitch Mode</span>
+        <label class="muted">+ Participantes <input id="bulkAdd" type="number" min="1" value="5"/></label>
+        <button class="btn alt" id="btnBulk">Simular</button>
+        <button class="btn ghost" id="btnComplete">Completar un círculo</button>
+        <button class="btn ghost" id="btnReset">Reset demo</button>
+      </div>
+      <button class="btn" id="btnLogin">Ingresar / Registrarme</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-card">
+      <h1>Compra colaborativa con precio <span style="color:var(--brand-2)">mayorista</span>.</h1>
+      <p>Los productos se liberan cuando se completa el círculo (cupos). Al alcanzarse la meta, todos los miembros acceden al <strong>precio mayorista</strong> o <strong>precio importación</strong>.</p>
+      <div class="statbar">
+        <span class="chip">Privado / por invitación</span>
+        <span class="chip">Progreso en tiempo real</span>
+        <span class="chip">Pedidos con datos del cliente</span>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div style="display:flex; gap:12px; align-items:center;">
+        <div style="flex:1">
+          <div style="font-weight:700;">¿Cómo funciona?</div>
+          <ol style="margin:10px 0 0 18px; color:var(--muted); font-size:14px;">
+            <li>El cliente se registra y es aprobado.</li>
+            <li>Se une a un círculo de producto.</li>
+            <li>Al completar la meta, confirma el pedido y retira/compra al mayorista.</li>
+          </ol>
+        </div>
+        <button class="btn" id="btnDemoComplete">Completar un círculo →</button>
+      </div>
+      <div style="margin-top:12px; color:#c7d3ea; font-size:12px;">*MVP de demostración. Sin pagos reales.</div>
+    </div>
+  </section>
+
+  <section class="grid" id="grid"></section>
+
+  <footer>
+    Mock de Círculos · MVP con Registro y Pedidos · Estado guardado en localStorage
+  </footer>
+</div>
+
+<!-- Modal Auth -->
+<div id="modalAuth" class="modal">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+      <h3>Registro / Ingreso</h3>
+      <button class="btn alt" id="closeAuth">Cerrar</button>
+    </div>
+    <p class="muted" style="margin-top:0">Completá tus datos para habilitar pedidos. (Demo: los datos se guardan localmente).</p>
+    <form id="formAuth" class="form">
+      <div class="field"><label>Nombre y apellido</label><input required name="name" placeholder="María Pérez"/></div>
+      <div class="field"><label>Email</label><input required type="email" name="email" placeholder="maria@empresa.com"/></div>
+      <div class="field"><label>Teléfono</label><input required name="phone" placeholder="+598 9xx xxx xx"/></div>
+      <div class="field"><label>Documento / RUT</label><input required name="id" placeholder="RUT/CI"/></div>
+      <div class="field full"><label>Empresa</label><input required name="company" placeholder="Distribuidora S.A."/></div>
+      <div class="field full"><label>Dirección</label><input required name="address" placeholder="Calle, número, ciudad"/></div>
+      <div class="field full"><label>Notas (opcional)</label><textarea name="notes" rows="3" placeholder="Comentarios del cliente"></textarea></div>
+      <div class="field full"><label><input type="checkbox" required name="terms"/> Declaro que la información es correcta (demo).</label></div>
+      <div class="field full" style="display:flex;gap:8px;justify-content:flex-end">
+        <button type="button" class="btn alt" id="btnFill">Autocompletar demo</button>
+        <button class="btn" type="submit">Guardar y continuar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Pedidos -->
+<div id="modalOrders" class="modal">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+      <h3>Mis pedidos</h3>
+      <button class="btn alt" id="closeOrders">Cerrar</button>
+    </div>
+    <div id="ordersList" class="muted"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  /*** Estado ***/
+  const KEY_PRODUCTS='circulos-demo-v2-products';
+  const KEY_USER='circulos-demo-v2-user';
+  const KEY_ORDERS='circulos-demo-v2-orders';
+
+  const initialProducts=[
+    {id:'yerba-kg',name:'Yerba Mate Baldo 1Kg',subtitle:'Pack retiro en depósito / mayorista',retailPrice:390,wholesalePrice:270,target:100,joined:68},
+    {id:'aceite-oliva',name:'Aceite de Oliva Extra 500ml',subtitle:'Precio importación al completar 80 cupos',retailPrice:520,wholesalePrice:355,target:80,joined:29},
+    {id:'detergente-box',name:'Detergente Industrial (Caja x12)',subtitle:'Entrega 48h post-círculo',retailPrice:1890,wholesalePrice:1340,target:60,joined:57}
+  ];
+
+  let stateProducts=load(KEY_PRODUCTS)||seed(initialProducts);
+  let user=load(KEY_USER)||null;
+  let orders=load(KEY_ORDERS)||[];
+
+  function seed(arr){const obj=arr.reduce((a,p)=>{a[p.id]=p;return a;},{});save(KEY_PRODUCTS,obj);return obj}
+  function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+  function load(k){const s=localStorage.getItem(k);try{return s?JSON.parse(s):null}catch(e){return null}}
+
+  function fmtUYU(n){return new Intl.NumberFormat('es-UY',{style:'currency',currency:'UYU',maximumFractionDigits:0}).format(n)}
+  function now(){return new Date().toLocaleString('es-UY')}
+
+  /*** Render ***/
+  function render(){
+    // Header account
+    const badge=document.getElementById('acctBadge');
+    const btnLogin=document.getElementById('btnLogin');
+    const btnOrders=document.getElementById('btnOrders');
+    if(user){badge.style.display='inline-block';badge.textContent=`${user.name} · ${user.company}`;btnLogin.textContent='Cerrar sesión';btnOrders.style.display='inline-block';}
+    else {badge.style.display='none';btnLogin.textContent='Ingresar / Registrarme';btnOrders.style.display='none'}
+
+    // Grid
+    const grid=document.getElementById('grid');
+    grid.innerHTML='';
+    Object.values(stateProducts).forEach(p=>{
+      const pct=Math.min(100,Math.round((p.joined/p.target)*100));
+      const left=Math.max(0,p.target-p.joined);
+      const card=document.createElement('article');
+      card.className='card';
+      card.innerHTML=`
+        <div class="thumb"><div>${p.name.split(' ')[0]}<br><span style="font-size:12px;opacity:.7">${p.target} cupos</span></div></div>
+        <div class="content">
+          <div class="title">${p.name}</div>
+          <div class="subtitle">${p.subtitle}</div>
+          <div class="progress-wrap">
+            <div class="progress" aria-label="Progreso"><span style="width:${pct}%"></span></div>
+            <div class="progress-info">${p.joined}/${p.target}</div>
+          </div>
+          <div class="row">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div class="price">Mayorista: ${fmtUYU(p.wholesalePrice)}</div>
+              <div style="font-size:12px;color:#c7d3ea;">Minorista: <s>${fmtUYU(p.retailPrice)}</s></div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn" data-action="join" data-id="${p.id}">Unirme</button>
+              <button class="btn alt" data-action="share" data-id="${p.id}">Compartir</button>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <small style="color:#c7d3ea;">Faltan <strong>${left}</strong> para liberar el precio.</small>
+            <button class="btn ghost" data-action="fast" data-id="${p.id}">+5 Cupos</button>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(window._t);window._t=setTimeout(()=>el.classList.remove('show'),1800)}
+
+  /*** Auth ***/
+  const modalAuth=document.getElementById('modalAuth');
+  const formAuth=document.getElementById('formAuth');
+  document.getElementById('btnLogin').addEventListener('click',()=>{
+    if(user){ // logout
+      user=null; save(KEY_USER,user); toast('Sesión cerrada'); render(); return;
+    }
+    modalAuth.classList.add('show');
+  });
+  document.getElementById('closeAuth').addEventListener('click',()=>modalAuth.classList.remove('show'));
+  document.getElementById('btnFill').addEventListener('click',()=>{
+    formAuth.name.value='Martín Prieto';
+    formAuth.email.value='martin@licenti.uy';
+    formAuth.phone.value='+598 99 999 999';
+    formAuth.id.value='RUT 123456780019';
+    formAuth.company.value='Distribuidora Demo S.A.';
+    formAuth.address.value='Av. Demo 1234, San José, UY';
+    formAuth.notes.value='Cliente prioritario para piloto.';
+    formAuth.terms.checked=true;
+  });
+  formAuth.addEventListener('submit',e=>{
+    e.preventDefault();
+    const fd=new FormData(formAuth);
+    user={
+      name:fd.get('name').trim(), email:fd.get('email').trim(), phone:fd.get('phone').trim(),
+      id:fd.get('id').trim(), company:fd.get('company').trim(), address:fd.get('address').trim(), notes:fd.get('notes')||''
+    };
+    save(KEY_USER,user); modalAuth.classList.remove('show'); toast('Registro guardado. Ya podés hacer pedidos.'); render();
+  });
+
+  /*** Pedidos ***/
+  const modalOrders=document.getElementById('modalOrders');
+  const ordersList=document.getElementById('ordersList');
+  document.getElementById('btnOrders').addEventListener('click',()=>{ renderOrders(); modalOrders.classList.add('show'); });
+  document.getElementById('closeOrders').addEventListener('click',()=>modalOrders.classList.remove('show'));
+
+  function renderOrders(){
+    if(!orders.length){ ordersList.innerHTML='<p class="muted">No hay pedidos aún.</p>'; return; }
+    ordersList.innerHTML='';
+    const wrap=document.createElement('div');
+    wrap.style.display='grid'; wrap.style.gap='8px';
+    orders.forEach(o=>{
+      const item=document.createElement('div');
+      item.style.padding='12px'; item.style.border='1px solid rgba(255,255,255,.12)'; item.style.borderRadius='12px';
+      item.innerHTML=`<div style="display:flex;justify-content:space-between;gap:8px"><strong>${o.productName}</strong><span class="muted">${o.when}</span></div>
+      <div class="muted">Cantidad: ${o.qty} · Precio mayorista: ${fmtUYU(o.unitPrice)} · Total: ${fmtUYU(o.total)}</div>
+      <div class="muted">Cliente: ${o.customer.name} (${o.customer.company}) – ${o.customer.email}</div>`;
+      wrap.appendChild(item);
+    });
+    ordersList.appendChild(wrap);
+  }
+
+  /*** Interacciones de tarjetas ***/
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('button'); if(!btn) return;
+    const id=btn.getAttribute('data-id'); const action=btn.getAttribute('data-action');
+    if(!action) return;
+    const p=stateProducts[id]; if(!p) return;
+
+    if(action==='join'){
+      if(!user){ toast('Ingresá/registrate para unirte y registrar pedido.'); modalAuth.classList.add('show'); return; }
+      if(p.joined < p.target){ p.joined++; save(KEY_PRODUCTS,stateProducts); render(); }
+      if(p.joined >= p.target){
+        // Al completar: generar un pedido mínimo por defecto (1 unidad) para el usuario 
+        const qty=1; const order={productId:p.id, productName:p.name, unitPrice:p.wholesalePrice, qty, total:qty*p.wholesalePrice, when:now(), customer:user};
+        orders.push(order); save(KEY_ORDERS,orders); renderOrders();
+        toast(`¡Círculo completo! Pedido registrado para ${user.name}.`);
+        modalOrders.classList.add('show');
+      } else {
+        toast(`Te uniste a "${p.name}". Progreso: ${p.joined}/${p.target}`);
+      }
+    }
+
+    if(action==='share'){
+      const shareText=`Me sumé al círculo "${p.name}". Faltan ${Math.max(0,p.target-p.joined)} lugares. ¡Unite para activar precio mayorista!`;
+      if(navigator.clipboard){ navigator.clipboard.writeText(shareText); toast('Texto copiado. ¡Listo para pegar en WhatsApp/IG!'); }
+      else { prompt('Copiá y compartí:', shareText); }
+    }
+
+    if(action==='fast'){
+      p.joined=Math.min(p.target,p.joined+5); save(KEY_PRODUCTS,stateProducts); render();
+      if(p.joined>=p.target){ toast(`¡${p.name}: círculo completo!`); }
+    }
+  });
+
+  /*** Pitch helpers ***/
+  document.getElementById('btnBulk').addEventListener('click',()=>{
+    const n=parseInt(document.getElementById('bulkAdd').value||'0',10);
+    const ids=Object.keys(stateProducts); const targetId=ids[Math.floor(Math.random()*ids.length)];
+    stateProducts[targetId].joined=Math.min(stateProducts[targetId].target,stateProducts[targetId].joined+n);
+    save(KEY_PRODUCTS,stateProducts); render(); toast(`+${n} participantes en "${stateProducts[targetId].name}"`);
+  });
+  document.getElementById('btnDemoComplete').addEventListener('click',completeMostAdvanced);
+  document.getElementById('btnComplete').addEventListener('click',completeMostAdvanced);
+  function completeMostAdvanced(){
+    const list=Object.values(stateProducts).sort((a,b)=>(b.joined/b.target)-(a.joined/a.target));
+    if(list.length){const p=list[0]; p.joined=p.target; save(KEY_PRODUCTS,stateProducts); render(); toast(`Demo: se completó "${p.name}"`);}
+  }
+  document.getElementById('btnReset').addEventListener('click',()=>{localStorage.clear(); stateProducts=seed(initialProducts); user=null; orders=[]; save(KEY_USER,user); save(KEY_ORDERS,orders); render(); toast('Demo reseteada');});
+
+  render();
+</script>
+</body>
+</html>
